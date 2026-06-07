@@ -28,15 +28,63 @@ Download `MediaMatch-x.x.x-Setup.exe` from the [Releases page](https://github.co
 ### macOS
 Download `MediaMatch-x.x.x.pkg` from the [Releases page](https://github.com/Bmontythe3rd/mediamatch/releases) and open it. You may need to allow it in **System Settings → Privacy & Security** on first run.
 
-### Linux (any distro)
-Download `MediaMatch-x.x.x-x86_64.AppImage` from the [Releases page](https://github.com/Bmontythe3rd/mediamatch/releases), make it executable, and run:
+### Linux
+
+Two packages are available on the [Releases page](https://github.com/Bmontythe3rd/mediamatch/releases):
+
+| Package | Best for |
+|---|---|
+| `MediaMatch-x.x.x-x86_64.AppImage` | Ubuntu, Debian, Fedora, most distros |
+| `MediaMatch-x.x.x-linux-x86_64.tar.gz` | Arch Linux, NixOS, or anywhere FUSE 2 is unavailable |
+
+#### Option A — AppImage (Ubuntu / Debian / Fedora)
+
+AppImages require **FUSE 2** (`libfuse2`). It is pre-installed on most distros but not Arch (see Option B).
 
 ```bash
 chmod +x MediaMatch-x.x.x-x86_64.AppImage
 ./MediaMatch-x.x.x-x86_64.AppImage
 ```
 
-No installation required — AppImages are self-contained.
+**Arch Linux — FUSE 2 fix:**
+```bash
+sudo pacman -S fuse2
+./MediaMatch-x.x.x-x86_64.AppImage
+```
+
+**Ubuntu 22.04+:**
+```bash
+sudo apt install libfuse2
+./MediaMatch-x.x.x-x86_64.AppImage
+```
+
+**Fedora:**
+```bash
+sudo dnf install fuse fuse-libs
+./MediaMatch-x.x.x-x86_64.AppImage
+```
+
+**No-root workaround (any distro):** If you cannot install FUSE, extract and run directly — no installation needed:
+```bash
+./MediaMatch-x.x.x-x86_64.AppImage --appimage-extract
+./squashfs-root/AppRun
+```
+
+---
+
+#### Option B — tar.gz (Arch Linux / no FUSE required)
+
+This is a plain directory bundle that runs without FUSE.
+
+```bash
+tar -xzf MediaMatch-x.x.x-linux-x86_64.tar.gz
+cd MediaMatch
+./MediaMatch          # run directly
+# or install to ~/.local:
+bash install.sh
+```
+
+After `install.sh`, launch with `mediamatch` from any terminal (requires `~/.local/bin` in your `PATH`).
 
 ### From source (any platform)
 

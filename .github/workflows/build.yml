@@ -128,12 +128,21 @@ jobs:
         run: |
           ARCH=x86_64 ./appimagetool AppDir dist/MediaMatch-1.0.0-x86_64.AppImage
 
-      - name: Upload Linux AppImage
+      - name: Create Linux tar.gz (no FUSE required)
+        if: runner.os == 'Linux'
+        run: |
+          cp packaging/linux/install.sh dist/MediaMatch/install.sh
+          chmod +x dist/MediaMatch/install.sh
+          tar -czf dist/MediaMatch-1.0.0-linux-x86_64.tar.gz -C dist MediaMatch
+
+      - name: Upload Linux artifacts
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: dist/MediaMatch-*.AppImage
+          path: |
+            dist/MediaMatch-*.AppImage
+            dist/MediaMatch-*-linux-x86_64.tar.gz
 
   # ── Publish GitHub Release ──────────────────────────────────────────
   release:
@@ -156,3 +165,4 @@ jobs:
             artifacts/MediaMatch-windows/*.exe
             artifacts/MediaMatch-macos/*.pkg
             artifacts/MediaMatch-linux/*.AppImage
+            artifacts/MediaMatch-linux/*.tar.gz
