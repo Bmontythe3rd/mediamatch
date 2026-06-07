@@ -112,21 +112,22 @@ jobs:
           mkdir -p AppDir/usr/bin AppDir/usr/share/icons/hicolor/256x256/apps
           cp -r dist/MediaMatch/* AppDir/usr/bin/
           cp assets/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/mediamatch.png
+          cp assets/icon.png AppDir/mediamatch.png
           cat > AppDir/mediamatch.desktop << 'EOF'
-          [Desktop Entry]
-          Name=MediaMatch
-          Exec=MediaMatch
-          Icon=mediamatch
-          Type=Application
-          Categories=AudioVideo;
-          EOF
+[Desktop Entry]
+Name=MediaMatch
+Exec=MediaMatch
+Icon=mediamatch
+Type=Application
+Categories=AudioVideo;
+EOF
           cat > AppDir/AppRun << 'EOF'
-          #!/bin/bash
-          SELF=$(readlink -f "$0")
-          HERE=$(dirname "$SELF")
-          export PATH="$HERE/usr/bin:$PATH"
-          exec "$HERE/usr/bin/MediaMatch" "$@"
-          EOF
+#!/bin/bash
+SELF=$(readlink -f "$0")
+HERE=$(dirname "$SELF")
+export PATH="$HERE/usr/bin:$PATH"
+exec "$HERE/usr/bin/MediaMatch" "$@"
+EOF
           chmod +x AppDir/AppRun
 
       - name: Download appimagetool (Linux)
