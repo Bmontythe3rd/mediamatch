@@ -174,6 +174,43 @@ MediaMatch works without a key (using GuessIt parsing only), but TMDb lookup pro
 
 ---
 
+## Uninstalling
+
+### Linux
+
+An uninstall script is included in the release tar.gz (`uninstall.sh`) and in the repo at `packaging/linux/uninstall.sh`. It handles all installation methods — tar.gz, pip/source, and AppImage — and also removes config data.
+
+**Preview what will be removed (dry run, nothing is deleted):**
+```bash
+bash uninstall.sh
+```
+
+**Actually remove everything:**
+```bash
+bash uninstall.sh --yes
+```
+
+The script removes:
+- `~/.local/lib/mediamatch/` — application files (tar.gz install)
+- `~/.local/bin/mediamatch` and `~/.local/bin/mediamatch-gui` — launcher scripts
+- `~/.local/share/applications/mediamatch.desktop` — desktop entry
+- `~/.local/share/icons/hicolor/256x256/apps/mediamatch.png` — app icon
+- `~/.local/lib/python*/site-packages/mediamatch*` — pip-installed package files
+- Any `MediaMatch*.AppImage` found under your home directory
+- Any `squashfs-root/` left over from a `--appimage-extract` run
+- `~/.config/MediaMatch/` — settings and undo log
+
+### Windows
+Use **Add or Remove Programs** (or **Settings → Apps**) and search for *MediaMatch*.
+
+### macOS
+Drag **MediaMatch.app** from `/Applications` to the Trash. Config data can be removed with:
+```bash
+rm -rf ~/Library/Application\ Support/MediaMatch
+```
+
+---
+
 ## Building from Source
 
 ### Requirements
