@@ -5,6 +5,16 @@ All notable changes to MediaMatch will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-06-07
+
+### Added
+- Debian/Ubuntu `.deb` package — install via `sudo apt install mediamatch` once
+  the apt repository is configured, or download directly from the Releases page
+- GitHub Pages apt repository (branch `apt`) updated automatically on each
+  release via a new `apt-repo.yml` workflow
+- Fixed hardcoded `1.0.0` version string in AppImage and tar.gz filenames —
+  release artifacts now carry the correct version number
+
 ## [1.0.3] - 2026-06-07
 
 ### Added

@@ -1,0 +1,13 @@
+Package: mediamatch
+Version: VERSION
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: libglib2.0-0, libgl1, libxkbcommon-x11-0, libxcb-icccm4, libxcb-image0, libxcb-keysyms1, libxcb-randr0, libxcb-render-util0, libxcb-xinerama0, libxcb-cursor0
+Maintainer: Bryan Montgomery <bmontgomery@montymail.tech>
+Homepage: https://github.com/Bmontythe3rd/mediamatch
+Description: Rename media folders to Plex/Jellyfin naming conventions
+ MediaMatch automatically renames your media folders to the naming
+ conventions expected by Plex and Jellyfin. Point it at a folder full
+ of movies or TV shows, preview the proposed renames, and apply in
+ one click.

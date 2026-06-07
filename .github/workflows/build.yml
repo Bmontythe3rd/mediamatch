@@ -129,15 +129,46 @@ jobs:
       - name: Create AppImage (Linux)
         if: runner.os == 'Linux'
         run: |
-          ARCH=x86_64 ./appimagetool AppDir dist/MediaMatch-1.0.0-x86_64.AppImage
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCH=x86_64 ./appimagetool AppDir "dist/MediaMatch-${VERSION}-x86_64.AppImage"
 
       - name: Create Linux tar.gz (no FUSE required)
         if: runner.os == 'Linux'
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           cp packaging/linux/install.sh dist/MediaMatch/install.sh
           cp packaging/linux/uninstall.sh dist/MediaMatch/uninstall.sh
           chmod +x dist/MediaMatch/install.sh dist/MediaMatch/uninstall.sh
-          tar -czf dist/MediaMatch-1.0.0-linux-x86_64.tar.gz -C dist MediaMatch
+          tar -czf "dist/MediaMatch-${VERSION}-linux-x86_64.tar.gz" -C dist MediaMatch
+
+      - name: Build .deb package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PKG="mediamatch_${VERSION}_amd64"
+
+          mkdir -p "${PKG}/DEBIAN"
+          mkdir -p "${PKG}/usr/lib/mediamatch"
+          mkdir -p "${PKG}/usr/bin"
+          mkdir -p "${PKG}/usr/share/applications"
+          mkdir -p "${PKG}/usr/share/icons/hicolor/256x256/apps"
+
+          cp -r dist/MediaMatch/. "${PKG}/usr/lib/mediamatch/"
+
+          # Launcher wrapper so the binary is on PATH as 'mediamatch'
+          printf '#!/bin/sh\nexec /usr/lib/mediamatch/MediaMatch "$@"\n' \
+            > "${PKG}/usr/bin/mediamatch"
+          chmod +x "${PKG}/usr/bin/mediamatch"
+
+          cp packaging/linux/mediamatch.desktop "${PKG}/usr/share/applications/"
+          cp assets/icon.png "${PKG}/usr/share/icons/hicolor/256x256/apps/mediamatch.png"
+
+          sed "s/VERSION/${VERSION}/" packaging/debian/control.in > "${PKG}/DEBIAN/control"
+          cp packaging/debian/postinst "${PKG}/DEBIAN/postinst"
+          cp packaging/debian/postrm   "${PKG}/DEBIAN/postrm"
+          chmod 755 "${PKG}/DEBIAN/postinst" "${PKG}/DEBIAN/postrm"
+
+          dpkg-deb --build --root-owner-group "${PKG}" "dist/${PKG}.deb"
 
       - name: Upload Linux artifacts
         if: runner.os == 'Linux'
@@ -147,6 +178,7 @@ jobs:
           path: |
             dist/MediaMatch-*.AppImage
             dist/MediaMatch-*-linux-x86_64.tar.gz
+            dist/mediamatch_*_amd64.deb
 
   # ── Publish GitHub Release ──────────────────────────────────────────
   release:
@@ -170,3 +202,4 @@ jobs:
             artifacts/MediaMatch-macos/*.pkg
             artifacts/MediaMatch-linux/*.AppImage
             artifacts/MediaMatch-linux/*.tar.gz
+            artifacts/MediaMatch-linux/*.deb
