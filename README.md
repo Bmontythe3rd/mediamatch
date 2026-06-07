@@ -39,12 +39,27 @@ chmod +x MediaMatch-x.x.x-x86_64.AppImage
 No installation required — AppImages are self-contained.
 
 ### From source (any platform)
+
+> **Note:** Modern Linux distros and macOS expose Python 3 as `python3`/`pip3`.
+> Use `python3 -m pip` if the `pip` command is not found.
+
 ```bash
 git clone https://github.com/Bmontythe3rd/mediamatch.git
 cd mediamatch
-pip install -e .
-mediamatch-gui
+python3 -m pip install -e .
+python3 -m mediamatch.main
 ```
+
+If `python3 -m mediamatch.main` works but the `mediamatch-gui` command isn't
+found, your `pip` scripts directory (`~/.local/bin` on Linux/macOS) is not on
+your `PATH`. Either add it:
+
+```bash
+# Add to ~/.bashrc or ~/.zshrc, then restart your shell
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Or just always launch with `python3 -m mediamatch.main`.
 
 ---
 
@@ -118,12 +133,12 @@ MediaMatch works without a key (using GuessIt parsing only), but TMDb lookup pro
 ```bash
 git clone https://github.com/Bmontythe3rd/mediamatch.git
 cd mediamatch
-pip install -r requirements-dev.txt
+python3 -m pip install -r requirements-dev.txt
 ```
 
 ### Run in dev mode
 ```bash
-python src/mediamatch/main.py
+python3 src/mediamatch/main.py
 ```
 
 ### Build platform installer locally
