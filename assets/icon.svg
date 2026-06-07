@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="#1a1a2e"/>
+  <!-- Film reel outer ring -->
+  <circle cx="128" cy="128" r="90" fill="none" stroke="#e94560" stroke-width="10"/>
+  <!-- Film reel spokes -->
+  <circle cx="128" cy="60" r="16" fill="#e94560"/>
+  <circle cx="128" cy="196" r="16" fill="#e94560"/>
+  <circle cx="60" cy="128" r="16" fill="#e94560"/>
+  <circle cx="196" cy="128" r="16" fill="#e94560"/>
+  <!-- Center hub -->
+  <circle cx="128" cy="128" r="24" fill="#e94560"/>
+  <circle cx="128" cy="128" r="10" fill="#1a1a2e"/>
+  <!-- Play triangle -->
+  <polygon points="118,112 118,144 150,128" fill="#ffffff" opacity="0.9"/>
+</svg>

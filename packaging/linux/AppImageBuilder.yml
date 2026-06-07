@@ -1,0 +1,55 @@
+# AppImageBuilder recipe for MediaMatch Linux universal package.
+# Requires: appimage-builder (pip install appimage-builder)
+# Run from repo root after: pyinstaller mediamatch.spec
+
+version: 1
+
+AppDir:
+  path: ./AppDir
+
+  app_info:
+    id: tech.montymail.mediamatch
+    name: MediaMatch
+    icon: mediamatch
+    version: 1.0.0
+    exec: usr/bin/MediaMatch
+    exec_args: "$@"
+
+  apt:
+    arch: amd64
+    sources:
+      - sourceline: 'deb [arch=amd64] http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse'
+    include:
+      - libglib2.0-0
+      - libgl1
+      - libxcb-icccm4
+      - libxcb-image0
+      - libxcb-keysyms1
+      - libxcb-randr0
+      - libxcb-render-util0
+      - libxcb-xinerama0
+      - libxkbcommon-x11-0
+    exclude: []
+
+  files:
+    include:
+      - dist/MediaMatch/**
+    exclude:
+      - usr/share/doc
+      - usr/share/man
+
+  test:
+    fedora-30:
+      image: appimagecrafters/tests-env:fedora-30
+      command: ./AppRun --version
+    debian-stable:
+      image: appimagecrafters/tests-env:debian-stable
+      command: ./AppRun --version
+    archlinux-latest:
+      image: appimagecrafters/tests-env:archlinux-latest
+      command: ./AppRun --version
+
+AppImage:
+  arch: x86_64
+  file_name: MediaMatch-1.0.0-x86_64.AppImage
+  update-information: gh-releases-zsync|Bmontythe3rd|mediamatch|latest|MediaMatch-*x86_64.AppImage.zsync

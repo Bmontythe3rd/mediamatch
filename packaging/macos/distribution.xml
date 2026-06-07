@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+    <title>MediaMatch</title>
+    <organization>tech.montymail.mediamatch</organization>
+    <domains enable_localSystem="true"/>
+    <options customize="never" require-scripts="false" rootVolumeOnly="true"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="tech.montymail.mediamatch"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="tech.montymail.mediamatch" visible="false">
+        <pkg-ref id="tech.montymail.mediamatch"/>
+    </choice>
+    <pkg-ref id="tech.montymail.mediamatch" version="1.0.0" onConclusion="none">MediaMatch_component.pkg</pkg-ref>
+</installer-gui-script>
