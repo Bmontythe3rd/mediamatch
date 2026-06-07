@@ -40,7 +40,8 @@ def build_tv_name(title: str, year: int | None, tmdb_id: int | None = None) -> s
 
 def propose_name(item: MediaItem, tmdb_client: TMDbClient | None = None) -> MediaItem:
     """Fill item.proposed_name (and TMDb fields) without touching the filesystem."""
-    parsed: ParsedMedia = parse_name(item.original_name)
+    hint = "tv" if item.media_type == MediaType.TV_SHOW else "movie"
+    parsed: ParsedMedia = parse_name(item.original_name, media_type_hint=hint)
 
     tmdb_result: TMDbResult | None = None
     if tmdb_client and tmdb_client.available:

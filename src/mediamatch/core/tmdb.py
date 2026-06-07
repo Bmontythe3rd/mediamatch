@@ -1,10 +1,15 @@
 """TMDb API lookup with graceful offline fallback."""
 from __future__ import annotations
 
+import difflib
 import logging
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
+
+
+def _title_similarity(a: str, b: str) -> float:
+    return difflib.SequenceMatcher(None, a.casefold(), b.casefold()).ratio()
 
 
 @dataclass
@@ -49,26 +54,26 @@ class TMDbClient:
         if not self.available:
             return None
         try:
-            results = self._tmdb["movie"].search(title)
+            results = list(self._tmdb["movie"].search(title) or [])
             if not results:
                 return None
-            # Prefer result matching year if supplied
-            best = None
+
+            scored: list[tuple[float, object, int | None]] = []
             for r in results:
                 release_year = int(r.release_date[:4]) if getattr(r, "release_date", "") else None
-                if year and release_year == year:
-                    best = (r, release_year)
-                    break
-            if best is None:
-                r = results[0]
-                release_year = int(r.release_date[:4]) if getattr(r, "release_date", "") else None
-                best = (r, release_year)
-            r, release_year = best
+                sim = _title_similarity(title, getattr(r, "title", "") or "")
+                year_bonus = 0.15 if (year and release_year == year) else 0.0
+                scored.append((sim + year_bonus, r, release_year))
+
+            scored.sort(key=lambda x: x[0], reverse=True)
+            best_score, r, release_year = scored[0]
+
             return TMDbResult(
                 tmdb_id=r.id,
                 title=r.title,
                 year=release_year,
                 overview=getattr(r, "overview", ""),
+                confidence=min(best_score, 1.0),
             )
         except Exception as exc:
             logger.warning("TMDb movie search failed: %s", exc)
@@ -78,27 +83,38 @@ class TMDbClient:
         if not self.available:
             return None
         try:
-            results = self._tmdb["tv"].search(title)
+            results = list(self._tmdb["tv"].search(title) or [])
+
+            # If year-constrained search returned nothing, retry without year
             if not results:
+                logger.debug("TMDb TV search for %r returned no results", title)
                 return None
-            best = None
+
+            # Score each result by title similarity + year match bonus
+            scored: list[tuple[float, object, int | None]] = []
             for r in results:
                 first_air = getattr(r, "first_air_date", "") or ""
                 air_year = int(first_air[:4]) if first_air else None
-                if year and air_year == year:
-                    best = (r, air_year)
-                    break
-            if best is None:
-                r = results[0]
-                first_air = getattr(r, "first_air_date", "") or ""
-                air_year = int(first_air[:4]) if first_air else None
-                best = (r, air_year)
-            r, air_year = best
+                sim = _title_similarity(title, getattr(r, "name", "") or "")
+                year_bonus = 0.15 if (year and air_year == year) else 0.0
+                scored.append((sim + year_bonus, r, air_year))
+
+            scored.sort(key=lambda x: x[0], reverse=True)
+            best_score, r, air_year = scored[0]
+
+            # If the best match is a poor title similarity, log a warning
+            if best_score < 0.4:
+                logger.warning(
+                    "Low-confidence TV match for %r: %r (score=%.2f)",
+                    title, getattr(r, "name", ""), best_score,
+                )
+
             return TMDbResult(
                 tmdb_id=r.id,
                 title=r.name,
                 year=air_year,
                 overview=getattr(r, "overview", ""),
+                confidence=min(best_score, 1.0),
             )
         except Exception as exc:
             logger.warning("TMDb TV search failed: %s", exc)

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from pathlib import Path
@@ -11,7 +12,16 @@ VIDEO_EXTENSIONS = {
     ".flv", ".webm", ".ts", ".m2ts", ".mpg", ".mpeg",
 }
 
-SEASON_PATTERNS = {"season", "s01", "s02", "s03", "s1", "s2", "s3"}
+# Matches season/series subdirectory names (Season 1, S01, S10, Series 2, etc.)
+_SEASON_DIR_RE = re.compile(r'\b(season|series|s\d{1,2})\b', re.IGNORECASE)
+
+# Matches episode markers in filenames/folder names
+_EPISODE_RE = re.compile(
+    r'[Ss]\d{1,2}[Ee]\d{1,2}'   # S01E01
+    r'|\d{1,2}[xX]\d{2}'        # 1x01
+    r'|\bE\d{2,3}\b'             # E01 absolute
+    r'|[Ee]pisode\.?\s*\d+'      # Episode 1 / Episode.1
+)
 
 
 class MediaType(Enum):
@@ -43,19 +53,19 @@ def _has_video_files(path: Path) -> bool:
 
 
 def _looks_like_tv(path: Path) -> bool:
-    """Heuristic: contains season-named subdirs or multiple episode-like video files."""
-    children = [c for c in path.iterdir() if c.is_dir()]
-    for child in children:
-        name_lower = child.name.lower()
-        if any(p in name_lower for p in SEASON_PATTERNS):
+    """Heuristic: folder name, subdirs, or video files contain season/episode markers."""
+    # Check the top-level folder name itself (e.g. "Breaking.Bad.S01" or "Show.S01E01")
+    if _SEASON_DIR_RE.search(path.name) or _EPISODE_RE.search(path.name):
+        return True
+
+    # Check immediate subdirectory names for season folders (Season 1, S02, Series 3, etc.)
+    for child in path.iterdir():
+        if child.is_dir() and _SEASON_DIR_RE.search(child.name):
             return True
 
-    # Check if there are multiple video files with SxxExx patterns
-    import re
-    episode_re = re.compile(r"[Ss]\d{1,2}[Ee]\d{1,2}")
+    # Check video file names — any single episode marker is enough
     video_files = [f for f in path.rglob("*") if f.suffix.lower() in VIDEO_EXTENSIONS]
-    matching = sum(1 for f in video_files if episode_re.search(f.name))
-    return matching >= 2
+    return any(_EPISODE_RE.search(f.name) for f in video_files)
 
 
 def scan_directory(root: Path, progress_callback=None) -> list[MediaItem]:
