@@ -2,6 +2,27 @@
 # The CI workflow invokes: pyinstaller mediamatch.spec
 import sys
 from pathlib import Path
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+
+# babelfish (guessit dependency) loads country/language data files at runtime
+# and guessit ships pattern files — both must be bundled explicitly.
+datas = [('assets', 'assets')]
+datas += collect_data_files('babelfish')
+datas += collect_data_files('guessit')
+datas += collect_data_files('tmdbv3api')
+
+hidden = [
+    'mediamatch',
+    'mediamatch.core',
+    'mediamatch.ui',
+    'mediamatch.utils',
+    'tmdbv3api',
+    'PySide6.QtCore',
+    'PySide6.QtGui',
+    'PySide6.QtWidgets',
+]
+hidden += collect_submodules('babelfish')
+hidden += collect_submodules('guessit')
 
 block_cipher = None
 
@@ -9,20 +30,8 @@ a = Analysis(
     ['src/mediamatch/main.py'],
     pathex=['.', 'src'],
     binaries=[],
-    datas=[
-        ('assets', 'assets'),
-    ],
-    hiddenimports=[
-        'mediamatch',
-        'mediamatch.core',
-        'mediamatch.ui',
-        'mediamatch.utils',
-        'guessit',
-        'tmdbv3api',
-        'PySide6.QtCore',
-        'PySide6.QtGui',
-        'PySide6.QtWidgets',
-    ],
+    datas=datas,
+    hiddenimports=hidden,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
