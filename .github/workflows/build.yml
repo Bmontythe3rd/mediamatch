@@ -135,7 +135,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           cp packaging/linux/install.sh dist/MediaMatch/install.sh
-          chmod +x dist/MediaMatch/install.sh
+          cp packaging/linux/uninstall.sh dist/MediaMatch/uninstall.sh
+          chmod +x dist/MediaMatch/install.sh dist/MediaMatch/uninstall.sh
           tar -czf dist/MediaMatch-1.0.0-linux-x86_64.tar.gz -C dist MediaMatch
 
       - name: Upload Linux artifacts
