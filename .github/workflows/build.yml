@@ -53,6 +53,7 @@ jobs:
             libglib2.0-0 libgl1-mesa-dev libxkbcommon-x11-0 \
             libxcb-icccm4 libxcb-image0 libxcb-keysyms1 \
             libxcb-randr0 libxcb-render-util0 libxcb-xinerama0 \
+            libxcb-cursor0 \
             fuse libfuse2
 
       # ── macOS: convert PNG → proper ICNS ─────────────────────────────
@@ -109,8 +110,10 @@ jobs:
       - name: Prepare AppDir (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir -p AppDir/usr/bin AppDir/usr/share/icons/hicolor/256x256/apps
+          mkdir -p AppDir/usr/bin AppDir/usr/lib AppDir/usr/share/icons/hicolor/256x256/apps
           cp -r dist/MediaMatch/* AppDir/usr/bin/
+          # Bundle libxcb-cursor0 so Ubuntu/Debian users don't need to install it manually
+          find /usr/lib/x86_64-linux-gnu -name "libxcb-cursor.so*" -exec cp {} AppDir/usr/lib/ \;
           cp assets/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/mediamatch.png
           cp assets/icon.png AppDir/mediamatch.png
           cp packaging/linux/mediamatch.desktop AppDir/mediamatch.desktop

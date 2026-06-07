@@ -2,4 +2,6 @@
 SELF=$(readlink -f "$0")
 HERE=$(dirname "$SELF")
 export PATH="$HERE/usr/bin:$PATH"
+# Prepend bundled libs so libxcb-cursor and Qt xcb deps are found first
+export LD_LIBRARY_PATH="$HERE/usr/lib:$LD_LIBRARY_PATH"
 exec "$HERE/usr/bin/MediaMatch" "$@"

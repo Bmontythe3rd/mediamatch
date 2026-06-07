@@ -39,7 +39,9 @@ Two packages are available on the [Releases page](https://github.com/Bmontythe3r
 
 #### Option A — AppImage (Ubuntu / Debian / Fedora)
 
-AppImages require **FUSE 2** (`libfuse2`). It is pre-installed on most distros but not Arch (see Option B).
+AppImages require **FUSE 2** (`libfuse2`). All other Qt dependencies, including `libxcb-cursor0`, are **bundled inside the AppImage** — no extra packages needed.
+
+> **Important:** Do **not** run the AppImage with `sudo`. It must run as your normal user to access the display.
 
 ```bash
 chmod +x MediaMatch-x.x.x-x86_64.AppImage
@@ -64,7 +66,7 @@ sudo dnf install fuse fuse-libs
 ./MediaMatch-x.x.x-x86_64.AppImage
 ```
 
-**No-root workaround (any distro):** If you cannot install FUSE, extract and run directly — no installation needed:
+**No-root workaround (any distro):** If you cannot install FUSE, extract and run directly:
 ```bash
 ./MediaMatch-x.x.x-x86_64.AppImage --appimage-extract
 ./squashfs-root/AppRun
