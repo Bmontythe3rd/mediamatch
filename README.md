@@ -11,11 +11,13 @@
 ## Features
 
 - **Auto-detects** movies vs. TV shows from folder structure and filenames
+- **Full Plex-standard renames** — folder, season folders (`Season 01`, `Season 00` for specials), and every episode/movie video file
 - **Smart parsing** via [GuessIt](https://guessit.readthedocs.io/) — handles virtually any naming chaos
-- **Optional TMDb enrichment** — confirms titles, years, and appends `{tmdb-ID}` for perfect library matching
-- **Preview before rename** — a diff-style table shows current → proposed names before anything changes
+- **Optional TMDb enrichment** — confirms titles, years, fetches real episode titles, and appends `{tmdb-ID}` for perfect library matching
+- **Tree-view preview** — see the full rename plan (show → season → episodes) and uncheck anything you'd like to skip
+- **Conflict detection** — collisions and existing-target conflicts are highlighted before you apply
 - **Dry-run mode** — simulate all renames without touching a single file
-- **Undo** — every rename is logged; undo the last batch in one click
+- **Batched undo** — one Undo click reverses an entire Apply, including folder/season/file renames
 - **Cross-platform** — identical experience on Windows, macOS, and Linux
 
 ---
@@ -151,12 +153,23 @@ Movie Title (Year) {tmdb-12345}/   ← with TMDb ID enabled
 ### TV Shows
 ```
 Show Name (Year)/
-Show Name (Year) {tmdb-67890}/     ← with TMDb ID enabled
+Show Name (Year) {tmdb-67890}/         ← with TMDb ID enabled
+  ├── Season 00/                       ← "Specials" folder is normalised
+  │    └── Show Name (Year) - s00e01.mkv
   └── Season 01/
-       └── Show Name - S01E01 - Episode Title.mkv
+       ├── Show Name (Year) - s01e01 - Pilot.mkv
+       └── Show Name (Year) - s01e02-e03 - Two-Parter.mkv
 ```
 
-> **Note:** MediaMatch renames the *top-level folder* for each title. Season folder renaming and episode file renaming are planned for a future release.
+MediaMatch renames the top-level title folder, every season folder, and
+every episode file in one operation. Multi-episode files use the
+`s01e01-e02` form; episodes inside a `Specials` folder become `s00eXX`.
+
+### Movies
+```
+Movie Title (Year)/
+  └── Movie Title (Year).mkv
+```
 
 ---
 

@@ -1,10 +1,10 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "mediamatch"
-version = "1.0.4"
+version = "1.1.0"
 description = "Rename media folders to Plex/Jellyfin naming conventions"
 readme = "README.md"
 license = { text = "MIT" }

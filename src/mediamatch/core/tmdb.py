@@ -25,16 +25,18 @@ class TMDbClient:
     def __init__(self, api_key: str = ""):
         self._api_key = api_key
         self._tmdb = None
+        # episode title cache: (tv_id, season) -> {episode_number: name}
+        self._episode_cache: dict[tuple[int, int], dict[int, str]] = {}
         if api_key:
             self._init_client()
 
     def _init_client(self):
         try:
-            from tmdbv3api import TMDb, Movie, TV
+            from tmdbv3api import TMDb, Movie, TV, Season
             tmdb = TMDb()
             tmdb.api_key = self._api_key
             tmdb.language = "en"
-            self._tmdb = {"movie": Movie(), "tv": TV()}
+            self._tmdb = {"movie": Movie(), "tv": TV(), "season": Season()}
             logger.info("TMDb client initialised")
         except Exception as exc:
             logger.warning("Failed to init TMDb client: %s", exc)
@@ -43,6 +45,7 @@ class TMDbClient:
     def set_api_key(self, api_key: str):
         self._api_key = api_key
         self._tmdb = None
+        self._episode_cache.clear()
         if api_key:
             self._init_client()
 
@@ -119,3 +122,22 @@ class TMDbClient:
         except Exception as exc:
             logger.warning("TMDb TV search failed: %s", exc)
             return None
+
+    def get_episode_title(self, tv_id: int, season: int, episode: int) -> str | None:
+        """Fetch the episode title from TMDb. Caches the whole season the
+        first time a given (tv_id, season) is requested."""
+        if not self.available or tv_id is None or season is None or episode is None:
+            return None
+        key = (tv_id, season)
+        if key not in self._episode_cache:
+            try:
+                details = self._tmdb["season"].details(tv_id, season)
+                episodes = getattr(details, "episodes", []) or []
+                self._episode_cache[key] = {
+                    int(getattr(ep, "episode_number", 0)): str(getattr(ep, "name", "") or "")
+                    for ep in episodes
+                }
+            except Exception as exc:
+                logger.debug("TMDb season fetch failed (tv=%s s=%s): %s", tv_id, season, exc)
+                self._episode_cache[key] = {}
+        return self._episode_cache[key].get(episode) or None

@@ -5,6 +5,47 @@ All notable changes to MediaMatch will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-13
+
+### Added
+- **Full Plex-standard renames** for TV shows: season folders normalised to
+  `Season XX` (and `Season 00` for specials) and episode files renamed to
+  `ShowName (Year) - sXXeYY[-eZZ][ - Title].ext`.
+- **Movie file renames** inside each movie folder
+  (`MovieName (Year).ext`), matched on the largest video file so sample
+  files and extras are ignored.
+- **TMDb episode-title lookup** — when a TMDb API key is configured, real
+  episode titles are fetched (and cached per season) to fill the
+  `Optional Title` slot.
+- **Tree-view preview** showing the full rename plan: each title expands
+  into its season folders and episode files, with per-row checkboxes that
+  cascade to children.
+- **Conflict detection** — rows whose target name already exists on disk,
+  or whose target collides with another planned rename, are flagged in
+  red so you can resolve them before applying.
+- **Episode count and total size** shown next to each TV show in the
+  preview.
+- **Batched undo** — every rename produced by a single Apply click is
+  recorded as one batch, so a single Undo Last Rename reverses the
+  entire operation (folder + season folders + every episode file).
+- **`1x01`-style episode numbers** are now recognised in addition to
+  `sXXeYY`, both for classification and number extraction.
+
+### Changed
+- Scanner now walks each title folder to collect season folders and
+  episode files (or the primary movie file), instead of only the
+  top-level folder.
+- TV/movie classification is more accurate: explicit season folders,
+  `Specials` folders, multi-file and single-file episode markers,
+  `1x01`/`Episode N` patterns, and folder-name-only hints
+  (e.g. `Show.S03`) all classify correctly.
+
+### Fixed
+- Multi-episode files (`s01e01-e02`) are now recognised and renamed
+  correctly instead of crashing GuessIt on list-valued episode numbers.
+- `pyproject.toml` build-backend corrected to `setuptools.build_meta`
+  so `pip install -e .` works locally.
+
 ## [1.0.4] - 2026-06-07
 
 ### Added
@@ -37,7 +78,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   similarity instead of returning the first year-match or `results[0]`,
   reducing wrong-match assignments; low-confidence TV matches emit a warning
   in the application log
-
 ## [1.0.0] - 2026-06-06
 
 ### Added

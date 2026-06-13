@@ -16,6 +16,18 @@ class ParsedMedia:
     media_type: str  # "movie" or "episode"
 
 
+def _first_int(value) -> int | None:
+    """GuessIt may return a single int or a list (multi-episode files)."""
+    if value is None:
+        return None
+    if isinstance(value, list):
+        return int(value[0]) if value else None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def parse_name(name: str, media_type_hint: str | None = None) -> ParsedMedia:
     """Parse a filename or folder name into structured media info.
 
@@ -30,9 +42,9 @@ def parse_name(name: str, media_type_hint: str | None = None) -> ParsedMedia:
     result = guessit(name, options)
     return ParsedMedia(
         title=str(result.get("title", name)),
-        year=int(result["year"]) if "year" in result else None,
-        season=int(result["season"]) if "season" in result else None,
-        episode=int(result["episode"]) if "episode" in result else None,
+        year=_first_int(result.get("year")),
+        season=_first_int(result.get("season")),
+        episode=_first_int(result.get("episode")),
         episode_title=str(result["episode_title"]) if "episode_title" in result else None,
         media_type=str(result.get("type", "movie")),
     )

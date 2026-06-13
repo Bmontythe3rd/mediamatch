@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 
 from mediamatch import __app_name__, __version__
 from mediamatch.core.scanner import scan_directory, MediaItem
-from mediamatch.core.renamer import propose_name, apply_rename
+from mediamatch.core.renamer import propose_name, apply_plan
 from mediamatch.core.tmdb import TMDbClient
 from mediamatch.core import undo
 from mediamatch.ui.preview_table import PreviewTable
@@ -61,7 +61,7 @@ class ScanWorker(QObject):
 class RenameWorker(QObject):
     progress = Signal(int, int, str)
     item_done = Signal(int, bool)
-    finished = Signal(int, int)
+    finished = Signal(int, int, int)  # ops_succeeded, ops_failed, items_touched
 
     def __init__(self, items: list[MediaItem], dry_run: bool):
         super().__init__()
@@ -70,20 +70,20 @@ class RenameWorker(QObject):
 
     def run(self):
         enabled = [(i, item) for i, item in enumerate(self.items) if item.enabled and item.needs_rename]
-        success = 0
+        ops_ok = 0
+        ops_fail = 0
+        batch: list[tuple[Path, Path]] = []
         for count, (idx, item) in enumerate(enabled):
             self.progress.emit(count + 1, len(enabled), item.original_name)
-            if self.dry_run:
-                ok = True
-            else:
-                old_path = item.path
-                ok = apply_rename(item)
-                if ok:
-                    undo.record(old_path, item.path)
-            if ok:
-                success += 1
-            self.item_done.emit(idx, ok)
-        self.finished.emit(success, len(enabled))
+            successes, failures = apply_plan(item, dry_run=self.dry_run)
+            ops_ok += len(successes)
+            ops_fail += len(failures)
+            if not self.dry_run:
+                batch.extend(successes)
+            self.item_done.emit(idx, len(failures) == 0)
+        if batch:
+            undo.record_batch(batch)
+        self.finished.emit(ops_ok, ops_fail, len(enabled))
 
 
 # ---------------------------------------------------------------------------
@@ -322,7 +322,7 @@ class MainWindow(QMainWindow):
             self._progress.setValue(int(c / t * 100)) if t else None,
             self._status_bar.showMessage(f"Renaming ({c}/{t}): {n}"),
         ))
-        worker.item_done.connect(lambda row, ok: self._model and self._model.update_row(row))
+        worker.item_done.connect(lambda row, ok: self._model and self._model.refresh_all())
         worker.finished.connect(self._on_rename_finished)
         worker.finished.connect(thread.quit)
         thread.finished.connect(worker.deleteLater)
@@ -330,28 +330,26 @@ class MainWindow(QMainWindow):
         self._worker = worker
         thread.start()
 
-    def _on_rename_finished(self, success: int, total: int):
+    def _on_rename_finished(self, ops_ok: int, ops_fail: int, items: int):
         self._set_busy(False)
         self._progress.setVisible(False)
         dry = self._dry_run_checkbox.isChecked()
-        msg = f"{'Dry run complete' if dry else 'Done'}: {success}/{total} item(s) renamed."
+        verb = "Would rename" if dry else "Renamed"
+        msg = f"{verb} {ops_ok} path(s) across {items} title(s)."
+        if ops_fail:
+            msg += f" {ops_fail} failed."
         self._status_bar.showMessage(msg)
         QMessageBox.information(self, "Complete", msg)
         self._update_button_states()
 
     def _select_all(self):
         if self._model:
-            from PySide6.QtCore import Qt
-            for i, item in enumerate(self._model.items):
-                item.enabled = True
-                self._model.update_row(i)
+            self._model.set_all_enabled(True)
             self._update_button_states()
 
     def _deselect_all(self):
         if self._model:
-            for i, item in enumerate(self._model.items):
-                item.enabled = False
-                self._model.update_row(i)
+            self._model.set_all_enabled(False)
             self._update_button_states()
 
     def _undo_last(self):
