@@ -33,6 +33,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Derive version from tag
+        shell: bash
+        run: |
+          REF="${GITHUB_REF_NAME:-}"
+          if [ -z "$REF" ] || [ "$REF" = "master" ] || [ "$REF" = "main" ]; then
+            REF="${{ github.event.inputs.version || '0.0.0-dev' }}"
+          fi
+          VERSION="${REF#v}"
+          echo "MEDIAMATCH_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Building MediaMatch $VERSION"
+
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
@@ -82,7 +93,7 @@ jobs:
         shell: cmd
         run: |
           mkdir dist\installer
-          iscc "packaging\windows\installer.iss"
+          iscc /DAppVersion=%MEDIAMATCH_VERSION% "packaging\windows\installer.iss"
 
       - name: Upload Windows installer
         if: runner.os == 'Windows'
@@ -129,22 +140,20 @@ jobs:
       - name: Create AppImage (Linux)
         if: runner.os == 'Linux'
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          ARCH=x86_64 ./appimagetool AppDir "dist/MediaMatch-${VERSION}-x86_64.AppImage"
+          ARCH=x86_64 ./appimagetool AppDir "dist/MediaMatch-${MEDIAMATCH_VERSION}-x86_64.AppImage"
 
       - name: Create Linux tar.gz (no FUSE required)
         if: runner.os == 'Linux'
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           cp packaging/linux/install.sh dist/MediaMatch/install.sh
           cp packaging/linux/uninstall.sh dist/MediaMatch/uninstall.sh
           chmod +x dist/MediaMatch/install.sh dist/MediaMatch/uninstall.sh
-          tar -czf "dist/MediaMatch-${VERSION}-linux-x86_64.tar.gz" -C dist MediaMatch
+          tar -czf "dist/MediaMatch-${MEDIAMATCH_VERSION}-linux-x86_64.tar.gz" -C dist MediaMatch
 
       - name: Build .deb package (Linux)
         if: runner.os == 'Linux'
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="$MEDIAMATCH_VERSION"
           PKG="mediamatch_${VERSION}_amd64"
 
           mkdir -p "${PKG}/DEBIAN"

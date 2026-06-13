@@ -1,7 +1,10 @@
 ; Inno Setup script for MediaMatch Windows installer
 
 #define AppName "MediaMatch"
-#define AppVersion "1.0.0"
+; CI overrides AppVersion via:  iscc /DAppVersion=1.2.3 installer.iss
+#ifndef AppVersion
+  #define AppVersion "0.0.0"
+#endif
 #define AppPublisher "Bryan Montgomery"
 #define AppURL "https://github.com/Bmontythe3rd/mediamatch"
 #define AppExeName "MediaMatch.exe"

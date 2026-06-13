@@ -4,7 +4,14 @@
 
 set -euo pipefail
 
-VERSION="1.0.0"
+# Version is supplied by CI via MEDIAMATCH_VERSION; fall back to the
+# Python package version when invoked manually.
+if [ -n "${MEDIAMATCH_VERSION:-}" ]; then
+    VERSION="$MEDIAMATCH_VERSION"
+else
+    VERSION="$(grep -E '^__version__' src/mediamatch/__init__.py \
+        | sed -E 's/.*"([^"]+)".*/\1/')"
+fi
 APP="dist/MediaMatch.app"
 PKG_DIR="dist/pkg_root/Applications"
 COMPONENT_PKG="dist/MediaMatch_component.pkg"

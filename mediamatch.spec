@@ -1,8 +1,24 @@
 # PyInstaller spec file — works on all three platforms.
 # The CI workflow invokes: pyinstaller mediamatch.spec
+import os
 import sys
 from pathlib import Path
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
+
+# Single source of truth for the version embedded in the macOS app bundle.
+# CI exports MEDIAMATCH_VERSION from the git tag; fall back to the Python
+# package version when building locally without the env var set.
+def _read_version():
+    env = os.environ.get("MEDIAMATCH_VERSION", "").strip()
+    if env:
+        return env
+    init = Path("src/mediamatch/__init__.py").read_text(encoding="utf-8")
+    for line in init.splitlines():
+        if line.startswith("__version__"):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    return "0.0.0"
+
+APP_VERSION = _read_version()
 
 # tmdbv3api data files (babelfish/guessit handled by hooks/hook-babelfish.py
 # and hooks/hook-guessit.py which use collect_all + copy_metadata).
@@ -75,8 +91,8 @@ if sys.platform == 'darwin':
         icon='assets/icon.icns',
         bundle_identifier='tech.montymail.mediamatch',
         info_plist={
-            'CFBundleShortVersionString': '1.0.0',
-            'CFBundleVersion': '1.0.0',
+            'CFBundleShortVersionString': APP_VERSION,
+            'CFBundleVersion': APP_VERSION,
             'NSHighResolutionCapable': True,
         },
     )
